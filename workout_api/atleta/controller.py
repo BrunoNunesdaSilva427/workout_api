@@ -71,6 +71,7 @@ async def post(
             detail=f"Já existe um atleta cadastrado com o cpf: {atleta_in.cpf}"
         )
     except Exception:
+        await db_session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail='Ocorreu um erro ao inserir os dados no banco'
@@ -108,7 +109,7 @@ async def query(
     response_model=AtletaOut,
 )
 async def get(id: UUID4, db_session: DatabaseDependency) -> AtletaOut:
-    atleta: AtletaOut = (
+    atleta = (
         await db_session.execute(select(AtletaModel).filter_by(id=id))
     ).scalars().first()
 
@@ -128,7 +129,7 @@ async def get(id: UUID4, db_session: DatabaseDependency) -> AtletaOut:
     response_model=AtletaOut,
 )
 async def patch(id: UUID4, db_session: DatabaseDependency, atleta_up: AtletaUpdate = Body(...)) -> AtletaOut:
-    atleta: AtletaOut = (
+    atleta = (
         await db_session.execute(select(AtletaModel).filter_by(id=id))
     ).scalars().first()
 
@@ -154,7 +155,7 @@ async def patch(id: UUID4, db_session: DatabaseDependency, atleta_up: AtletaUpda
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete(id: UUID4, db_session: DatabaseDependency) -> None:
-    atleta: AtletaOut = (
+    atleta = (
         await db_session.execute(select(AtletaModel).filter_by(id=id))
     ).scalars().first()
 
@@ -168,5 +169,4 @@ async def delete(id: UUID4, db_session: DatabaseDependency) -> None:
     await db_session.commit()
 
 
-# Adiciona suporte à paginação no router
 add_pagination(router)
